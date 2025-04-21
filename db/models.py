@@ -11,8 +11,8 @@ Base = declarative_base()
 
 
 class UserType(str, enum.Enum):
-    ADMIN = "admin"
-    USER = "user"
+    admin = "admin"
+    user = "user"
 
 
 class User(Base):
@@ -31,7 +31,7 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     type: Mapped[UserType] = mapped_column(
-        Enum(UserType), default=UserType.USER, nullable=False
+        Enum(UserType), default=UserType.user, nullable=False
     )
     conversations: Mapped[List["Conversation"]] = relationship(
         "Conversation", back_populates="user"
