@@ -7,17 +7,19 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 
+class Role(enum.Enum):
+    SYSTEM = "system"
+    USER = "user"
+    ASSISTANT = "assistant"
+
+
+@dataclass
+class Message:
+    role: Role
+    content: str
+
+
 class LLMService:
-    class Role(enum.Enum):
-        SYSTEM = "system"
-        USER = "user"
-        ASSISTANT = "assistant"
-
-    @dataclass
-    class Message:
-        role: "LLMService.Role"
-        content: str
-
     def __init__(self, token: str, endpoint: str):
         self._client = OpenAI(
             api_key=token,
@@ -34,9 +36,7 @@ class LLMService:
             stream=False,
         )
 
-        return self.Message(
-            role=self.Role.ASSISTANT, content=response.choices[0].message.content
-        )
+        return Message(role=Role.ASSISTANT, content=response.choices[0].message.content)
 
 
 if __name__ == "__main__":
@@ -47,12 +47,8 @@ if __name__ == "__main__":
     )
 
     messages = [
-        LLMService.Message(
-            role=LLMService.Role.SYSTEM, content="You are a helpful assistant."
-        ),
-        LLMService.Message(
-            role=LLMService.Role.USER, content="What is the capital of France?"
-        ),
+        Message(role=Role.SYSTEM, content="You are a helpful assistant."),
+        Message(role=Role.USER, content="What is the capital of France?"),
     ]
     response = llm_service.chat(model=os.getenv("LLM_MODEL"), messages=messages)
     print(f"Assistant: {response.content}")

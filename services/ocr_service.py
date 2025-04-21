@@ -5,19 +5,19 @@ import requests
 from dotenv import load_dotenv
 
 
-class OCRService:
-    @dataclass
-    class Result:
-        content: str
-        confidence: float
+@dataclass
+class Result:
+    content: str
+    confidence: float
 
+
+class OCRService:
     def __init__(self, token: str, endpoint: str):
-        self._token = token
         self._endpoint = endpoint
         self._session = requests.Session()
         self._session.headers.update(
             {
-                "token": self._token,
+                "token": token,
             }
         )
 
@@ -34,7 +34,7 @@ class OCRService:
         if not data["status"]:
             raise Exception("OCR failed")
 
-        return self.Result(content=data["res"]["latex"], confidence=data["res"]["conf"])
+        return Result(content=data["res"]["latex"], confidence=data["res"]["conf"])
 
     def turbo_ocr(self, image_data: bytes) -> Result:
         response = self._session.post(
@@ -49,7 +49,7 @@ class OCRService:
         if not data["status"]:
             raise Exception("OCR failed")
 
-        return self.Result(content=data["res"]["latex"], confidence=data["res"]["conf"])
+        return Result(content=data["res"]["latex"], confidence=data["res"]["conf"])
 
 
 if __name__ == "__main__":
