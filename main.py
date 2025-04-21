@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import api.auth.router
+import api.knowledge.router
 import api.ocr.router
 
 load_dotenv()
@@ -24,6 +25,7 @@ def create_app() -> FastAPI:
 
     app.include_router(api.auth.router.router)
     app.include_router(api.ocr.router.router)
+    app.include_router(api.knowledge.router.router)
 
     return app
 

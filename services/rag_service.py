@@ -163,7 +163,7 @@ class RAGService:
         self,
         question: str,
         dataset_ids: List[str],
-        document_ids: List[str] = None,
+        document_ids: Optional[List[str]] = None,
         page: int = 1,
         page_size: int = 30,
         similarity_threshold: float = 0.2,
