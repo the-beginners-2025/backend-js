@@ -172,4 +172,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# VS Code settings
 .vscode/
+
+# Test files
+test_input/
+
+# MacOS files
+.DS_Store
