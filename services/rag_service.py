@@ -1,7 +1,7 @@
 import enum
 import os
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from dotenv import load_dotenv
 from ragflow_sdk import RAGFlow, Session
@@ -129,7 +129,7 @@ class RAGService:
 
     def list_documents(
         self, dataset_id: str, page: int = 1, page_size: int = 30
-    ) -> List[Document]:
+    ) -> Tuple[List[Document], int]:
         dataset = self._client.list_datasets(id=dataset_id)[0]
         return [
             Document(
@@ -142,13 +142,14 @@ class RAGService:
                 progress_message=document.progress_msg,
             )
             for document in dataset.list_documents(page=page, page_size=page_size)
-        ]
+        ], dataset.document_count
 
     def list_chunks(
         self, dataset_id: str, document_id: str, page: int = 1, page_size: int = 30
-    ) -> List[Chunk]:
+    ) -> Tuple[List[Chunk], int]:
         dataset = self._client.list_datasets(id=dataset_id)[0]
         document = dataset.list_documents(id=document_id)[0]
+        chunk_count = document.chunk_count
         return [
             Chunk(
                 available=chunk.available,
@@ -156,7 +157,7 @@ class RAGService:
                 id=chunk.id,
             )
             for chunk in document.list_chunks(page=page, page_size=page_size)
-        ]
+        ], chunk_count
 
     def retrieve_chunks(
         self,
@@ -168,7 +169,7 @@ class RAGService:
         similarity_threshold: float = 0.2,
         vector_similarity_weight: float = 0.3,
         top_k: int = 1024,
-    ) -> List[Chunk]:
+    ) -> List[ResultChunk]:
         chunks = self._client.retrieve(
             dataset_ids=dataset_ids,
             question=question,
