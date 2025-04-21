@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import api.auth.router
+
 load_dotenv()
 
 
@@ -18,6 +20,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(api.auth.router.router)
 
     return app
 
