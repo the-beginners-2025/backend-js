@@ -3,7 +3,6 @@ import enum
 import uuid
 from typing import List
 
-from pydantic import EmailStr
 from sqlalchemy import UUID, DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -22,13 +21,13 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True
     )
-    email: Mapped[EmailStr] = mapped_column(String(255), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     nickname: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_time: Mapped[datetime.datetime] = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    updated_time: Mapped[datetime.datetime] = mapped_column(
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     type: Mapped[UserType] = mapped_column(
@@ -52,10 +51,10 @@ class Conversation(Base):
         index=True,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_time: Mapped[datetime.datetime] = mapped_column(
+    created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-    updated_time: Mapped[datetime.datetime] = mapped_column(
+    updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     user: Mapped["User"] = relationship("User", back_populates="conversations")
