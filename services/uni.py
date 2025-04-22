@@ -11,9 +11,10 @@ load_dotenv()
 RAG_TOKEN = os.getenv("RAG_TOKEN")
 RAG_ENDPOINT = os.getenv("RAG_ENDPOINT")
 RAG_CHAT_ID = os.getenv("RAG_CHAT_ID")
-if not RAG_TOKEN or not RAG_ENDPOINT or not RAG_CHAT_ID:
+RAG_AUTHORIZATION = os.getenv("RAG_AUTHORIZATION")
+if not RAG_TOKEN or not RAG_ENDPOINT or not RAG_CHAT_ID or not RAG_AUTHORIZATION:
     raise RuntimeError(
-        "RAG_TOKEN, RAG_ENDPOINT, and RAG_CHAT_ID environment variables not set"
+        "RAG_TOKEN, RAG_ENDPOINT, RAG_CHAT_ID, and RAG_AUTHORIZATION environment variables not set"
     )
 rag_service = RAGService(
     token=RAG_TOKEN,

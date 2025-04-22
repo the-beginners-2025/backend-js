@@ -2,8 +2,9 @@ import enum
 import os
 import re
 from dataclasses import dataclass
-from typing import Generator, List, Optional, Tuple
+from typing import Dict, Generator, List, Optional, Tuple
 
+import requests
 from dotenv import load_dotenv
 from ragflow_sdk import RAGFlow, Session
 
@@ -118,7 +119,17 @@ class Message:
 
 class RAGService:
     def __init__(self, token: str, endpoint: str):
+        self._endpoint = endpoint
         self._client = RAGFlow(api_key=token, base_url=endpoint)
+
+    def get_system_status(self, authorization: str) -> Optional[Dict]:
+        headers = {"authorization": authorization}
+        response = requests.get(f"{self._endpoint}/v1/system/status", headers=headers)
+        if response.status_code == 200:
+            result = response.json()
+            return result.get("data")
+        else:
+            return None
 
     @staticmethod
     def extract_filter_and_reorder(text: str, input_list: List) -> Tuple[List, str]:
