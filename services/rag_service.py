@@ -1,7 +1,7 @@
 import enum
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from ragflow_sdk import RAGFlow, Session
@@ -92,6 +92,15 @@ class ReferenceChunk:
     dataset_id: str
     document_id: str
     document_name: str
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "content": self.content,
+            "dataset_id": self.dataset_id,
+            "document_id": self.document_id,
+            "document_name": self.document_name,
+        }
 
 
 class Role(enum.Enum):
@@ -233,7 +242,9 @@ class RAGService:
             for message in session.messages
         ]
 
-    def chat(self, chat_id: str, user_id: str, conversation_id: str, message: str):
+    def chat(
+        self, chat_id: str, user_id: str, conversation_id: str, message: str
+    ) -> Tuple[Generator[str, None, None], List[ReferenceChunk], List[str]]:
         chat = self._client.list_chats(id=chat_id)[0]
         session = chat.list_sessions(name=f"{user_id}:{conversation_id}")[0]
         result = session.ask(question=message, stream=True)

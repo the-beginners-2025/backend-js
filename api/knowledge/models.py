@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-from torch import chunk
 
 
 class Dataset(BaseModel):
