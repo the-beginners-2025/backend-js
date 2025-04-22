@@ -1,11 +1,9 @@
 import asyncio
 import json
-import os
 import time
 import uuid
 from typing import List
 
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -20,36 +18,10 @@ from api.conversations.models import (
 from db.database import get_db
 from db.models import Conversation, User
 from middlewares.auth import auth_middleware
-from services.llm_service import LLMService, Message, Role
-from services.rag_service import RAGService
-
-load_dotenv()
+from services.llm_service import Message, Role
+from services.uni import LLM_MODEL, RAG_CHAT_ID, llm_service, rag_service
 
 router = APIRouter(prefix="/conversations")
-
-RAG_TOKEN = os.getenv("RAG_TOKEN")
-RAG_ENDPOINT = os.getenv("RAG_ENDPOINT")
-RAG_CHAT_ID = os.getenv("RAG_CHAT_ID")
-if not RAG_TOKEN or not RAG_ENDPOINT or not RAG_CHAT_ID:
-    raise RuntimeError(
-        "RAG_TOKEN, RAG_ENDPOINT, and RAG_CHAT_ID environment variables not set"
-    )
-rag_service = RAGService(
-    token=RAG_TOKEN,
-    endpoint=RAG_ENDPOINT,
-)
-
-LLM_TOKEN = os.getenv("LLM_TOKEN")
-LLM_ENDPOINT = os.getenv("LLM_ENDPOINT")
-LLM_MODEL = os.getenv("LLM_MODEL")
-if not LLM_TOKEN or not LLM_ENDPOINT or not LLM_MODEL:
-    raise RuntimeError(
-        "LLM_TOKEN, LLM_ENDPOINT, and LLM_MODEL environment variables not set"
-    )
-llm_service = LLMService(
-    token=LLM_TOKEN,
-    endpoint=LLM_ENDPOINT,
-)
 
 with open("prompts/related_questions.txt", "r", encoding="utf-8") as f:
     RELATED_QUESTIONS_PROMPT = f.read()

@@ -1,7 +1,3 @@
-import os
-from pydoc import doc
-
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends
 
 from api.knowledge.models import (
@@ -16,21 +12,9 @@ from api.knowledge.models import (
     RetrievalResponse,
 )
 from middlewares.auth import auth_middleware
-from services.rag_service import RAGService
-
-load_dotenv()
+from services.uni import rag_service
 
 router = APIRouter(prefix="/knowledge")
-
-RAG_TOKEN = os.getenv("RAG_TOKEN")
-RAG_ENDPOINT = os.getenv("RAG_ENDPOINT")
-if not RAG_TOKEN or not RAG_ENDPOINT:
-    raise RuntimeError("RAG_TOKEN and RAG_ENDPOINT environment variables must be set")
-
-rag_service = RAGService(
-    token=RAG_TOKEN,
-    endpoint=RAG_ENDPOINT,
-)
 
 
 @router.get("/", response_model=DatasetsResponse)

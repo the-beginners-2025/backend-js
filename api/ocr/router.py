@@ -1,19 +1,10 @@
 import os
 
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from api.ocr.models import OCRResponse
 from middlewares.auth import auth_middleware
-from services.ocr_service import OCRService
-
-load_dotenv()
-
-OCR_TOKEN = os.getenv("OCR_TOKEN")
-OCR_ENDPOINT = os.getenv("OCR_ENDPOINT")
-if not OCR_TOKEN or not OCR_ENDPOINT:
-    raise RuntimeError("OCR_TOKEN or OCR_ENDPOINT environment variable not set")
-ocr_service = OCRService(OCR_TOKEN, OCR_ENDPOINT)
+from services.uni import ocr_service
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
