@@ -1,5 +1,6 @@
 import enum
 import os
+import re
 from dataclasses import dataclass
 from typing import Generator, List, Optional, Tuple
 
@@ -120,6 +121,27 @@ class RAGService:
         self._client = RAGFlow(api_key=token, base_url=endpoint)
 
     @staticmethod
+    def extract_filter_and_reorder(text: str, input_list: List) -> Tuple[List, str]:
+        pattern = r"##(\d+)\$\$"
+        matches = re.finditer(pattern, text)
+        match_info = []
+        for match in matches:
+            index_value = int(match.group(1))
+            match_info.append((match.start(), match.end(), index_value))
+        filtered_list = []
+        valid_indices = []
+        for _, _, idx in match_info:
+            if 0 <= idx < len(input_list):
+                filtered_list.append(input_list[idx])
+                valid_indices.append(idx)
+        sorted_match_info = sorted(match_info, key=lambda x: x[0], reverse=True)
+        new_text = text
+        for i, (start, end, _) in enumerate(sorted_match_info):
+            new_index = i
+            new_text = new_text[:start] + f"##{new_index}$$" + new_text[end:]
+        return filtered_list, new_text
+
+    @staticmethod
     def calculate_page_count(total_items: int, page_size: int) -> int:
         if total_items == 0:
             return 0
@@ -220,6 +242,15 @@ class RAGService:
         self, chat_id: str, user_id: str, conversation_id: str
     ) -> List[Message]:
         session = self.get_conversation(chat_id, user_id, conversation_id)
+        messages = session.messages
+        for message in messages:
+            if "reference" not in message:
+                continue
+            new_references, new_message = self.extract_filter_and_reorder(
+                message["content"], message["reference"]
+            )
+            message["content"] = new_message
+            message["reference"] = new_references
         return [
             Message(
                 role=Role(message["role"]),
@@ -239,7 +270,7 @@ class RAGService:
                     else []
                 ),
             )
-            for message in session.messages
+            for message in messages
         ]
 
     def chat(
@@ -256,7 +287,11 @@ class RAGService:
             for content in result:
                 nonlocal complete_message, references
                 current_message = content.content
+
                 if content.reference:
+                    new_references, new_message = self.extract_filter_and_reorder(
+                        current_message, content.reference
+                    )
                     references.extend(
                         [
                             ReferenceChunk(
@@ -266,10 +301,10 @@ class RAGService:
                                 document_id=reference["document_id"],
                                 document_name=reference["document_name"],
                             )
-                            for reference in content.reference
+                            for reference in new_references
                         ]
                     )
-                    complete_message[0] = current_message
+                    complete_message[0] = new_message
                 else:
                     delta_message = current_message[len(complete_message[0]) :]
                     complete_message[0] = current_message
@@ -324,6 +359,7 @@ if __name__ == "__main__":
         print(f"Content: {message.content}")
         print(f"References: {[reference.id for reference in message.references]}")
         print("-" * 40)
+    """
 
     generator, references, complete_message = rag_service.chat(
         os.getenv("RAG_CHAT_ID"),
@@ -335,8 +371,9 @@ if __name__ == "__main__":
     for delta_message in generator:
         print(delta_message, end="", flush=True)
 
-    print("\n")
-    print(f"Complete message: {complete_message[0]}")
-    print(f"References: {[reference.id for reference in references]}")
+    print()
     print("-" * 40)
-    """
+    print(f"Complete message: {complete_message[0]}")
+    print("-" * 40)
+    print(f"References: {[reference.document_name for reference in references]}")
+    print("-" * 40)
