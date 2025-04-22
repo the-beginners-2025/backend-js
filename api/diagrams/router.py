@@ -1,6 +1,8 @@
+import json
 import xml.etree.ElementTree as ET
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 
 from api.diagrams.models import DiagramRequest, FlowchartResponse, MindmapResponse, Node
 from middlewares.auth import auth_middleware
@@ -55,7 +57,7 @@ async def create_mindmap(
         return MindmapResponse(root_node=Node(text=f"解析错误: {str(e)}"))
 
 
-@router.post("/flowchart", response_model=FlowchartResponse)
+@router.post("/flowchart")
 async def create_flowchart(
     diagram_request: DiagramRequest, _: None = Depends(auth_middleware)
 ):
@@ -69,8 +71,19 @@ async def create_flowchart(
             content=f"问题: {diagram_request.user_content}\n回答: {diagram_request.assistant_content}",
         ),
     ]
-    response = llm_service.chat(
+    response = llm_service.chat_stream(
         model=LLM_MODEL,
         messages=messages,
     )
-    return FlowchartResponse(mermaid=response.content)
+
+    async def event_stream():
+        for chunk in response:
+            data = {
+                "content": chunk.content,
+            }
+            yield f"data: {json.dumps(data)}\n\n"
+
+    return StreamingResponse(
+        content=event_stream(),
+        media_type="text/event-stream",
+    )

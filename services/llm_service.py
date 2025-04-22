@@ -38,6 +38,19 @@ class LLMService:
 
         return Message(role=Role.ASSISTANT, content=response.choices[0].message.content)
 
+    def chat_stream(self, model: str, messages: List[Message]):
+        response = self._client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": message.role.value, "content": message.content}
+                for message in messages
+            ],
+            stream=True,
+        )
+
+        for chunk in response:
+            yield Message(role=Role.ASSISTANT, content=chunk.choices[0].delta.content)
+
 
 if __name__ == "__main__":
     load_dotenv()
