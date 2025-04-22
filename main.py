@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import api.auth.router
+import api.conversations.router
 import api.knowledge.router
 import api.ocr.router
 
@@ -26,6 +27,7 @@ def create_app() -> FastAPI:
     app.include_router(api.auth.router.router)
     app.include_router(api.ocr.router.router)
     app.include_router(api.knowledge.router.router)
+    app.include_router(api.conversations.router.router)
 
     return app
 
