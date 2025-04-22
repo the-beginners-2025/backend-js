@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import api.admin.router
 import api.auth.router
 import api.conversations.router
 import api.diagrams.router
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     app.include_router(api.knowledge.router.router)
     app.include_router(api.conversations.router.router)
     app.include_router(api.diagrams.router.router)
+    app.include_router(api.admin.router.router)
 
     return app
 

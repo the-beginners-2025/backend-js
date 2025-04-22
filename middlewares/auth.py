@@ -7,7 +7,7 @@ from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 
 from db.database import get_db
-from db.models import User
+from db.models import User, UserType
 
 load_dotenv()
 
@@ -70,3 +70,14 @@ async def auth_middleware(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
+
+
+async def admin_only_middleware(
+    user: User = Depends(auth_middleware),
+):
+    if user.type != UserType.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return user
