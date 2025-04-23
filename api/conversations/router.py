@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import time
 import uuid
@@ -285,6 +286,9 @@ async def chat(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Conversation not found",
             )
+
+        conversation.updated_at = datetime.datetime.now()
+        db.commit()
 
         need_title_update = conversation.title == "新会话"
 
