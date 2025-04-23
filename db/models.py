@@ -3,7 +3,7 @@ import enum
 import uuid
 from typing import List
 
-from sqlalchemy import UUID, DateTime, Enum, ForeignKey, String
+from sqlalchemy import UUID, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -33,8 +33,9 @@ class User(Base):
     type: Mapped[UserType] = mapped_column(
         Enum(UserType), default=UserType.user, nullable=False
     )
-    conversations: Mapped[List["Conversation"]] = relationship(
-        "Conversation", back_populates="user"
+
+    statistics: Mapped["UserStatistics"] = relationship(
+        "UserStatistics", back_populates="user", uselist=False
     )
 
 
@@ -57,4 +58,26 @@ class Conversation(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
-    user: Mapped["User"] = relationship("User", back_populates="conversations")
+
+
+class UserStatistics(Base):
+    __tablename__ = "user_statistics"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    conversation_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    ocr_recognition_count: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    knowledge_base_search_count: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User", back_populates="statistics")

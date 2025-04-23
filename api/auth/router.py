@@ -15,7 +15,7 @@ from api.auth.models import (
     UserResponse,
 )
 from db.database import get_db
-from db.models import User, UserType
+from db.models import User, UserStatistics, UserType
 from middlewares.auth import auth_middleware
 
 load_dotenv()
@@ -71,6 +71,11 @@ async def register(account: RegisterRequest, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
         db.refresh(user)
+
+        user_stats = UserStatistics(user_id=user.id)
+        db.add(user_stats)
+        db.commit()
+
         token = generate_jwt_token(str(user.id))
         return TokenResponse(
             token=token,

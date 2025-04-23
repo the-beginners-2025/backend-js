@@ -18,10 +18,17 @@ CREATE TABLE conversations (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
+-- 创建用户统计信息表
+CREATE TABLE user_statistics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    conversation_count INTEGER NOT NULL DEFAULT 0,
+    ocr_recognition_count INTEGER NOT NULL DEFAULT 0,
+    knowledge_base_search_count INTEGER NOT NULL DEFAULT 0
+);
 -- 为user_id添加索引以提高查询效率
 CREATE INDEX idx_conversations_user_id ON conversations(user_id);
-
+CREATE INDEX idx_user_statistics_user_id ON user_statistics(user_id);
 -- 创建自动更新时间的触发器函数
 CREATE OR REPLACE FUNCTION update_updated_time() RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = CURRENT_TIMESTAMP;
 RETURN NEW;
