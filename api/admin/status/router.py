@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import exc, text
 from sqlalchemy.orm import Session
 
-from api.admin.status.models import KnowledgeStatus, PostgresStatus
+from api.admin.status.models import KnowledgeStatus, PostgresStatus, SystemStatus
 from db.database import get_db
 from services.uni import RAG_AUTHORIZATION, rag_service
 
@@ -14,9 +14,20 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model=SystemStatus)
 async def get_status(db: Session = Depends(get_db)):
-    pass
+    result = SystemStatus()
+
+    try:
+        db.execute(text("SELECT 1")).scalar()
+        result.postgres_online = True
+    except Exception:
+        result.postgres_online = False
+
+    system_status = rag_service.get_system_status(authorization=RAG_AUTHORIZATION)
+    result.knowledge_online = system_status is not None
+
+    return result
 
 
 @router.get("/knowledge", response_model=Optional[KnowledgeStatus])

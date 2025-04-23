@@ -34,3 +34,8 @@ class KnowledgeStatus(BaseModel):
     redis: Optional[Dict[str, Any]] = None
     storage: Optional[Dict[str, Any]] = None
     task_executor_heartbeats: Optional[Dict[str, List[TaskConsumerStatus]]] = None
+
+
+class SystemStatus(BaseModel):
+    postgres_online: bool = False
+    knowledge_online: bool = False
