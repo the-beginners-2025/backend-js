@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 from api.knowledge.models import (
     Chunk,
@@ -11,6 +12,8 @@ from api.knowledge.models import (
     RetrievalRequest,
     RetrievalResponse,
 )
+from db.database import get_db
+from db.models import User, UserStatistics
 from middlewares.auth import auth_middleware
 from services.uni import rag_service
 
@@ -104,8 +107,16 @@ async def get_chunks(
 
 @router.post("/retrieval", response_model=RetrievalResponse)
 async def retrieval(
-    retrieval_request: RetrievalRequest, _: None = Depends(auth_middleware)
+    retrieval_request: RetrievalRequest,
+    user: User = Depends(auth_middleware),
+    db: Session = Depends(get_db),
 ):
+    user_stats = (
+        db.query(UserStatistics).filter(UserStatistics.user_id == user.id).first()
+    )
+    user_stats.knowledge_base_search_count += 1
+    db.commit()
+
     return RetrievalResponse(
         chunks=[
             ResultChunk(

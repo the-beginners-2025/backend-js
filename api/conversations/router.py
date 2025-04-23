@@ -17,7 +17,7 @@ from api.conversations.models import (
     ReferenceChunkResponse,
 )
 from db.database import get_db
-from db.models import Conversation, User
+from db.models import Conversation, User, UserStatistics
 from middlewares.auth import auth_middleware
 from services.llm_service import Message, Role
 from services.uni import LLM_MODEL, RAG_CHAT_ID, llm_service, rag_service
@@ -287,6 +287,10 @@ async def chat(
                 detail="Conversation not found",
             )
 
+        user_stats = (
+            db.query(UserStatistics).filter(UserStatistics.user_id == user.id).first()
+        )
+        user_stats.conversation_count += 1
         conversation.updated_at = datetime.datetime.now()
         db.commit()
 
@@ -330,7 +334,7 @@ async def chat(
                         send_interval = 0
 
                     for i, blocks in enumerate(content_blocks):
-                        yield f"data: {json.dumps({"type": "content", "role": "assistant", "content": blocks})}\n\n"
+                        yield f"data: {json.dumps({'type': 'content', 'role': 'assistant', 'content': blocks})}\n\n"
                         if i < num_blocks - 1 and send_interval > 0:
                             await asyncio.sleep(send_interval)
 

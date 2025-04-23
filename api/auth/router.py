@@ -13,6 +13,7 @@ from api.auth.models import (
     TokenResponse,
     UpdateUserRequest,
     UserResponse,
+    UserStatisticsResponse,
 )
 from db.database import get_db
 from db.models import User, UserStatistics, UserType
@@ -159,3 +160,17 @@ async def update_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
         )
+
+
+@router.get("/statistics", response_model=UserStatisticsResponse)
+async def get_user_statistics(
+    db: Session = Depends(get_db), user: User = Depends(auth_middleware)
+):
+    user_stats = (
+        db.query(UserStatistics).filter(UserStatistics.user_id == user.id).first()
+    )
+    return UserStatisticsResponse(
+        knowledge_base_search_count=user_stats.knowledge_base_search_count,
+        ocr_recognition_count=user_stats.ocr_recognition_count,
+        conversation_count=user_stats.conversation_count,
+    )

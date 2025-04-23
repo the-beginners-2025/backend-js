@@ -34,3 +34,9 @@ class UpdateUserRequest(BaseModel):
     nickname: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
+
+
+class UserStatisticsResponse(BaseModel):
+    conversation_count: int
+    ocr_recognition_count: int
+    knowledge_base_search_count: int
