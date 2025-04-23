@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from api.conversations.models import (
     ConversationDetailResponse,
     ConversationResponse,
+    DetailedConversationResponse,
     MessageRequest,
     MessageResponse,
     ReferenceChunkResponse,
@@ -112,6 +113,49 @@ async def get_conversations(
         )
         for conversation in conversations
     ]
+
+
+@router.get("/detailed", response_model=List[DetailedConversationResponse])
+async def get_conversations_detailed(
+    user: User = Depends(auth_middleware), db: Session = Depends(get_db)
+):
+    recent_conversations = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == user.id)
+        .order_by(Conversation.updated_at.desc())
+        .limit(3)
+        .all()
+    )
+
+    result = []
+    for conversation in recent_conversations:
+        messages = rag_service.get_conversation_messages(
+            chat_id=RAG_CHAT_ID,
+            user_id=str(user.id),
+            conversation_id=str(conversation.id),
+        )
+
+        latest_message = ""
+        if messages:
+            for message in reversed(messages):
+                if message.role == "assistant":
+                    latest_message = message.content
+                    break
+
+            if not latest_message and messages:
+                latest_message = messages[-1].content
+
+        result.append(
+            DetailedConversationResponse(
+                id=str(conversation.id),
+                title=conversation.title,
+                created_at=str(conversation.created_at),
+                updated_at=str(conversation.updated_at),
+                latest_message=latest_message,
+            )
+        )
+
+    return result
 
 
 @router.post("/", response_model=ConversationResponse)

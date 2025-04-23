@@ -10,6 +10,10 @@ class ConversationResponse(BaseModel):
     updated_at: str
 
 
+class DetailedConversationResponse(ConversationResponse):
+    latest_message: str
+
+
 class ReferenceChunkResponse(BaseModel):
     id: str
     content: str
