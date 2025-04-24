@@ -48,7 +48,7 @@ def generate_related_questions(question: str) -> List[str]:
         if isinstance(related_questions, list) and all(
             isinstance(q, str) for q in related_questions
         ):
-            return related_questions
+            return [q for q in related_questions if q.strip()]
         else:
             return []
     except:
