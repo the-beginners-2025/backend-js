@@ -340,6 +340,9 @@ async def chat(
 
         need_title_update = conversation.title == "新会话"
 
+        user_id = user.id
+        conversation_id = conversation.id
+
         async def event_stream():
             loop = asyncio.get_event_loop()
             related_questions_future = loop.run_in_executor(
@@ -353,8 +356,8 @@ async def chat(
 
             generator, references, complete_message = rag_service.chat(
                 chat_id=RAG_CHAT_ID,
-                user_id=str(user.id),
-                conversation_id=str(conversation.id),
+                user_id=str(user_id),
+                conversation_id=str(conversation_id),
                 message=message.question,
             )
 
