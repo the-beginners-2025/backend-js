@@ -2,8 +2,9 @@ import os
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 import api.admin.router
 import api.auth.router
@@ -15,8 +16,53 @@ import api.ocr.router
 load_dotenv()
 
 
+security = HTTPBasic()
+
+
+def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = os.getenv("DOCS_USERNAME")
+    correct_password = os.getenv("DOCS_PASSWORD")
+
+    if not correct_username or not correct_password:
+        raise RuntimeError(
+            "DOCS_USERNAME and DOCS_PASSWORD environment variables not set"
+        )
+
+    if not (
+        credentials.username == correct_username
+        and credentials.password == correct_password
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return True
+
+
 def create_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI(
+        docs_url="/docs" if os.getenv("ENV") == "dev" else None,
+        redoc_url=None,
+        openapi_url="/openapi.json" if os.getenv("ENV") == "dev" else None,
+    )
+
+    if os.getenv("ENV") == "prod":
+        from fastapi import APIRouter
+
+        docs_router = APIRouter(dependencies=[Depends(verify_credentials)])
+
+        @docs_router.get("/docs", include_in_schema=False)
+        async def get_docs():
+            from fastapi.openapi.docs import get_swagger_ui_html
+
+            return get_swagger_ui_html(openapi_url="/openapi.json", title="Docs")
+
+        @docs_router.get("/openapi.json", include_in_schema=False)
+        async def get_openapi():
+            return app.openapi()
+
+        app.include_router(docs_router)
 
     app.add_middleware(
         CORSMiddleware,
