@@ -24,7 +24,9 @@ CREATE TABLE user_statistics (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     conversation_count INTEGER NOT NULL DEFAULT 0,
     ocr_recognition_count INTEGER NOT NULL DEFAULT 0,
-    knowledge_base_search_count INTEGER NOT NULL DEFAULT 0
+    knowledge_base_search_count INTEGER NOT NULL DEFAULT 0,
+    flow_chart_count INTEGER NOT NULL DEFAULT 0,
+    mind_map_count INTEGER NOT NULL DEFAULT 0
 );
 -- 为user_id添加索引以提高查询效率
 CREATE INDEX idx_conversations_user_id ON conversations(user_id);

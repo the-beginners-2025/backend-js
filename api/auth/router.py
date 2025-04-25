@@ -173,4 +173,6 @@ async def get_user_statistics(
         knowledge_base_search_count=user_stats.knowledge_base_search_count,
         ocr_recognition_count=user_stats.ocr_recognition_count,
         conversation_count=user_stats.conversation_count,
+        flow_chart_count=user_stats.flow_chart_count,
+        mind_map_count=user_stats.mind_map_count,
     )

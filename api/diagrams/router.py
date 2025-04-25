@@ -3,8 +3,11 @@ import xml.etree.ElementTree as ET
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
+from sqlalchemy.orm import Session
 
 from api.diagrams.models import DiagramRequest, FlowchartResponse, MindmapResponse, Node
+from db.database import get_db
+from db.models import User, UserStatistics
 from middlewares.auth import auth_middleware
 from services.llm_service import Message, Role
 from services.uni import LLM_MODEL, llm_service
@@ -19,8 +22,14 @@ with open("prompts/mindmap.txt", "r", encoding="utf-8") as f:
 
 @router.post("/mindmap", response_model=MindmapResponse)
 async def create_mindmap(
-    diagram_request: DiagramRequest, _: None = Depends(auth_middleware)
+    diagram_request: DiagramRequest, user: User = Depends(auth_middleware), db:Session = Depends(get_db)
 ):
+    usere_stats = (
+        db.query(UserStatistics).filter(UserStatistics.user_id == user.id).first()
+    )
+    usere_stats.mind_map_count += 1
+    db.commit()
+
     messages = [
         Message(
             role=Role.SYSTEM,
@@ -59,8 +68,14 @@ async def create_mindmap(
 
 @router.post("/flowchart")
 async def create_flowchart(
-    diagram_request: DiagramRequest, _: None = Depends(auth_middleware)
+    diagram_request: DiagramRequest, user: User = Depends(auth_middleware), db: Session = Depends(get_db)
 ):
+    usere_stats = (
+        db.query(UserStatistics).filter(UserStatistics.user_id == user.id).first()
+    )
+    usere_stats.flow_chart_count += 1
+    db.commit()
+
     messages = [
         Message(
             role=Role.SYSTEM,

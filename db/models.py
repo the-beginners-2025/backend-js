@@ -79,5 +79,11 @@ class UserStatistics(Base):
     knowledge_base_search_count: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False
     )
+    flow_chart_count: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
+    mind_map_count: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False
+    )
 
     user: Mapped["User"] = relationship("User", back_populates="statistics")

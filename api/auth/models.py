@@ -40,3 +40,5 @@ class UserStatisticsResponse(BaseModel):
     conversation_count: int
     ocr_recognition_count: int
     knowledge_base_search_count: int
+    flow_chart_count: int
+    mind_map_count: int
