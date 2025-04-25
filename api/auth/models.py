@@ -42,3 +42,12 @@ class UserStatisticsResponse(BaseModel):
     knowledge_base_search_count: int
     flow_chart_count: int
     mind_map_count: int
+
+
+class UserWithStatisticsResponse(BaseModel):
+    user: UserResponse
+    statistics: UserStatisticsResponse
+    
+    
+class AllUsersResponse(BaseModel):
+    users: list[UserWithStatisticsResponse]

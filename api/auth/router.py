@@ -8,16 +8,18 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from api.auth.models import (
+    AllUsersResponse,
     LoginRequest,
     RegisterRequest,
     TokenResponse,
     UpdateUserRequest,
     UserResponse,
     UserStatisticsResponse,
+    UserWithStatisticsResponse,
 )
 from db.database import get_db
 from db.models import User, UserStatistics, UserType
-from middlewares.auth import auth_middleware
+from middlewares.auth import admin_only_middleware, auth_middleware
 
 load_dotenv()
 
@@ -37,6 +39,16 @@ def create_user_response(user: User) -> UserResponse:
         created_at=str(user.created_at),
         updated_at=str(user.updated_at),
         type=user.type,
+    )
+
+
+def create_user_statistics_response(stats: UserStatistics) -> UserStatisticsResponse:
+    return UserStatisticsResponse(
+        knowledge_base_search_count=stats.knowledge_base_search_count,
+        ocr_recognition_count=stats.ocr_recognition_count,
+        conversation_count=stats.conversation_count,
+        flow_chart_count=stats.flow_chart_count,
+        mind_map_count=stats.mind_map_count,
     )
 
 
@@ -176,3 +188,27 @@ async def get_user_statistics(
         flow_chart_count=user_stats.flow_chart_count,
         mind_map_count=user_stats.mind_map_count,
     )
+
+
+@router.get("/", response_model=AllUsersResponse)
+async def get_all_users(
+    db: Session = Depends(get_db), _: None = Depends(admin_only_middleware)
+):
+    users = db.query(User).all()
+    result = []
+    
+    for user in users:
+        user_stats = db.query(UserStatistics).filter(UserStatistics.user_id == user.id).first()
+        if not user_stats:
+            user_stats = UserStatistics(user_id=user.id)
+            db.add(user_stats)
+            db.commit()
+            db.refresh(user_stats)
+            
+        user_with_stats = UserWithStatisticsResponse(
+            user=create_user_response(user),
+            statistics=create_user_statistics_response(user_stats)
+        )
+        result.append(user_with_stats)
+    
+    return AllUsersResponse(users=result)
