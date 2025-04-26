@@ -68,3 +68,39 @@ class RetrievalRequest(BaseModel):
     similarity_threshold: float = 0.2
     vector_similarity_weight: float = 0.3
     top_k: int = 1024
+
+
+class NodeProperties(BaseModel):
+    description: str
+    entity_id: str
+    entity_type: str
+    file_path: str
+    source_id: str
+
+
+class Node(BaseModel):
+    id: str
+    labels: List[str]
+    properties: NodeProperties
+
+
+class EdgeProperties(BaseModel):
+    description: str
+    file_path: str
+    keywords: str
+    source_id: str
+    weight: float
+
+
+class Edge(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: str
+    properties: EdgeProperties
+
+
+class GraphResponse(BaseModel):
+    nodes: List[Node]
+    edges: List[Edge]
+    is_truncated: bool = False

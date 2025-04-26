@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+import requests
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from api.knowledge.models import (
@@ -8,6 +9,7 @@ from api.knowledge.models import (
     DatasetsResponse,
     Document,
     DocumentsResponse,
+    GraphResponse,
     ResultChunk,
     RetrievalRequest,
     RetrievalResponse,
@@ -15,9 +17,35 @@ from api.knowledge.models import (
 from db.database import get_db
 from db.models import User, UserStatistics
 from middlewares.auth import auth_middleware
-from services.uni import rag_service
+from services.uni import LIGHT_GRAPH_ENDPOINT, rag_service
 
 router = APIRouter(prefix="/knowledge")
+
+
+@router.get("/graph", response_model=GraphResponse)
+async def get_graph(
+    max_depth: int = 3, max_nodes: int = 1000, _: None = Depends(auth_middleware)
+):
+    forward_url = f"{LIGHT_GRAPH_ENDPOINT}/graphs"
+    params = {"label": "*", "max_depth": max_depth, "max_nodes": max_nodes}
+
+    try:
+        response = requests.get(forward_url, params=params)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error fetching graph data",
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching graph data",
+        )
 
 
 @router.get("/", response_model=DatasetsResponse)
