@@ -1,3 +1,5 @@
+from typing import List
+
 import requests
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -24,14 +26,16 @@ router = APIRouter(prefix="/knowledge")
 
 @router.get("/graph", response_model=GraphResponse)
 async def get_graph(
-    max_depth: int = 3, max_nodes: int = 1000, _: None = Depends(auth_middleware)
+    label: str = "*",
+    max_depth: int = 3,
+    max_nodes: int = 1000,
+    _: None = Depends(auth_middleware),
 ):
     forward_url = f"{LIGHT_GRAPH_ENDPOINT}/graphs"
-    params = {"label": "*", "max_depth": max_depth, "max_nodes": max_nodes}
+    params = {"label": label, "max_depth": max_depth, "max_nodes": max_nodes}
 
     try:
         response = requests.get(forward_url, params=params)
-
         if response.status_code == 200:
             return response.json()
         else:
@@ -45,6 +49,28 @@ async def get_graph(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching graph data",
+        )
+
+
+@router.get("/graph/labels", response_model=List[str])
+async def get_graph_labels(_: None = Depends(auth_middleware)):
+    forward_url = f"{LIGHT_GRAPH_ENDPOINT}/graph/label/list"
+
+    try:
+        response = requests.get(forward_url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error fetching graph labels",
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching graph labels",
         )
 
 
