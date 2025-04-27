@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import api.admin.router
 import api.auth.router
@@ -71,6 +72,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
     app.include_router(api.auth.router.router)
     app.include_router(api.ocr.router.router)
